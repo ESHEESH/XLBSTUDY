@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+google-genai
+pyjwt[crypto]
+python-multipart
+python-docx
+python-pptx
+python-dotenv

@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --fg: #1d1d1f;
+  --muted: #6e6e73;
+  --accent: #0071e3;
+  --good: #30d158;
+  --bad: #ff453a;
+  --glass: rgba(255, 255, 255, 0.65);
+  --edge: rgba(255, 255, 255, 0.5);
+  --line: rgba(0, 0, 0, 0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --fg: #f5f5f7;
+    --muted: #98989d;
+    --accent: #2997ff;
+    --glass: rgba(28, 28, 30, 0.65);
+    --edge: rgba(255, 255, 255, 0.12);
+    --line: rgba(255, 255, 255, 0.1);
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --font-sans: system-ui, -apple-system, "SF Pro Text", "Segoe UI", sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 100%/1.5 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* size-specific tracking + leading (Apple type) */
+h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.05; letter-spacing: -0.02em; font-weight: 700; }
+h2 { font-size: 1.5rem; line-height: 1.15; letter-spacing: -0.015em; font-weight: 600; }
+
+/* feedback on press-down, instant */
+button, .press { transition: transform 100ms ease-out, opacity 100ms; touch-action: manipulation; }
+button:active:not(:disabled), .press:active { transform: scale(0.97); }
+button:disabled { opacity: 0.4; }
+
+.card { background: var(--surface); border-radius: 1.25rem; box-shadow: 0 1px 2px var(--line), 0 8px 30px rgba(0, 0, 0, 0.04); }
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid var(--edge);
+}
+.btn { background: var(--accent); color: #fff; border-radius: 9999px; padding: 0.6rem 1.25rem; font-weight: 600; }
+.btn-ghost { background: var(--line); color: var(--fg); border-radius: 9999px; padding: 0.6rem 1.25rem; font-weight: 500; }
+.field { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 0.875rem; padding: 0.7rem 1rem; outline: none; }
+.field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .card, .field { border: 1px solid var(--fg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
