@@ -137,8 +137,8 @@ Each phase ends in something usable. Do them in order.
 ## Deploy runbook (Phase 7)
 
 1. **Supabase:** run `0001_init.sql` then `0002_hardening.sql` (SQL editor). Auth → URL config: set Site URL to the Vercel URL and add `https://<vercel-url>/auth/callback` as a redirect. Enable Google provider if wanted.
-2. **Backend** (Render / Railway / Fly, uses `backend/Dockerfile`): env `GEMINI_API_KEY` (rotated key), `GEMINI_MODEL`, `SUPABASE_URL`, `ALLOWED_ORIGINS=https://<vercel-url>`. Run a single worker (rate limiter is in-memory). Check `GET /health`.
-3. **Frontend** (Vercel, root directory `frontend`): env `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_API_URL=https://<backend-url>`.
+2. **Vercel (one project, two services, see `vercel.json`):** import the repo; Vercel builds `backend` (FastAPI, public under `/api`) and `frontend` (Next.js, everything else). Env vars on the project: `GEMINI_API_KEY` (rotated), `GEMINI_MODEL`, `SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Leave `NEXT_PUBLIC_API_URL` unset (defaults to same-origin `/api`). `ALLOWED_ORIGINS` is unneeded (same origin). Check `GET /api/health`. The `backend/Dockerfile` is the fallback for Render/Fly; there, set `NEXT_PUBLIC_API_URL=https://<backend>/api`.
+3. **Limits to know:** Vercel Functions cap request bodies at ~4.5 MB, so large PDF/audio uploads (plan assumed 20 MB) will fail there; and the in-memory rate limiter is per instance.
 4. Smoke test: log in, import pasted text, study a card, go offline in DevTools and study, reconnect and confirm XP syncs.
 
 ## Security notes

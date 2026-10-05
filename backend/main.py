@@ -7,7 +7,7 @@ from typing import Literal
 
 import jwt
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, File, Header, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, FastAPI, File, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from google import genai
@@ -22,6 +22,8 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 jwks = jwt.PyJWKClient(f"{SUPABASE_URL}/auth/v1/.well-known/jwks.json") if SUPABASE_URL else None
 
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)  # don't advertise the API surface
+# Vercel forwards the original path (/api/...), so every route lives under /api.
+api = APIRouter(prefix="/api")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(","),
@@ -147,12 +149,12 @@ NATIVE = {  # extension -> mime, sent straight to Gemini
 }
 
 
-@app.get("/health")
+@api.get("/health")
 def health():
     return "ok"
 
 
-@app.post("/generate/file")
+@api.post("/generate/file")
 def generate_file(file: UploadFile = File(...), _: str = Depends(gen_limit)):
     data = file.file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
@@ -172,7 +174,7 @@ class UrlIn(BaseModel):
     url: str
 
 
-@app.post("/generate/youtube")
+@api.post("/generate/youtube")
 def generate_youtube(body: UrlIn, _: str = Depends(gen_limit)):
     if not body.url.startswith(("https://www.youtube.com/", "https://youtube.com/", "https://youtu.be/")):
         raise HTTPException(400, "Not a YouTube URL")
@@ -183,7 +185,7 @@ class TextIn(BaseModel):
     text: str
 
 
-@app.post("/generate/text")
+@api.post("/generate/text")
 def generate_text(body: TextIn, _: str = Depends(gen_limit)):
     if len(body.text) > 200_000:
         raise HTTPException(413, "Text too long")
@@ -208,7 +210,7 @@ MODES = {
 }
 
 
-@app.post("/tutor")
+@api.post("/tutor")
 def tutor(body: TutorIn, _: str = Depends(tutor_limit)):
     contents = [
         types.Content(role=m.role, parts=[types.Part(text=m.text)])
@@ -227,6 +229,9 @@ def tutor(body: TutorIn, _: str = Depends(tutor_limit)):
                 yield f"data: {chunk.text.replace(chr(10), chr(92) + 'n')}\n\n"
 
     return StreamingResponse(stream(), media_type="text/event-stream")
+
+
+app.include_router(api)
 
 
 if __name__ == "__main__":
